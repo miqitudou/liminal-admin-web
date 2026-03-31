@@ -26,10 +26,10 @@ export function createCategory(payload: Partial<CategoryItem>) {
   return http.post<unknown, CategoryItem>("/admin/categories", payload);
 }
 
-export function updateCategory(categoryId: string, payload: Partial<CategoryItem>) {
+export function updateCategory(categoryId: string | number, payload: Partial<CategoryItem>) {
   return http.put<unknown, CategoryItem>(`/admin/categories/${categoryId}`, payload);
 }
 
-export function deleteCategory(categoryId: string) {
+export function deleteCategory(categoryId: string | number) {
   return http.delete<unknown, { deleted: boolean }>(`/admin/categories/${categoryId}`);
 }

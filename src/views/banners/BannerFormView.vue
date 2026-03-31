@@ -4,11 +4,7 @@ import { ElMessage } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
 
 import ImageUploadField from "@/components/common/ImageUploadField.vue";
-import {
-  createBanner,
-  fetchBannerDetail,
-  updateBanner,
-} from "@/api/modules/banners";
+import { createBanner, fetchBannerDetail, updateBanner } from "@/api/modules/banners";
 import type { BannerItem } from "@/types/admin";
 
 const route = useRoute();
@@ -44,11 +40,21 @@ async function loadDetail() {
 async function handleSubmit() {
   loading.value = true;
   try {
+    const payload = {
+      title: form.title,
+      subtitle: form.subtitle,
+      image_url: form.image_url,
+      action_type: form.action_type,
+      action_value: form.action_value,
+      action_text: form.action_text,
+      sort: form.sort,
+      status: form.status,
+    };
     if (isEdit.value) {
-      await updateBanner(String(route.params.banner_id), form);
+      await updateBanner(String(route.params.banner_id), payload);
       ElMessage.success("轮播图已更新");
     } else {
-      await createBanner(form);
+      await createBanner(payload);
       ElMessage.success("轮播图已创建");
     }
     router.push("/banners");
@@ -65,16 +71,13 @@ onMounted(loadDetail);
     <div class="page-header">
       <div>
         <h2 class="page-title">{{ isEdit ? "编辑轮播图" : "新建轮播图" }}</h2>
-        <div class="page-subtitle">轮播图会直接影响 miniapp 首页运营位。</div>
+        <div class="page-subtitle">Banner 主键由数据库自动生成，跳转值填写当前分类或商品的数字 ID 即可。</div>
       </div>
     </div>
 
     <div class="page-card form-card" v-loading="loading">
       <el-form label-position="top">
         <div class="form-grid">
-          <el-form-item label="轮播图 ID">
-            <el-input v-model="form.banner_id" :disabled="isEdit" placeholder="例如 b1" />
-          </el-form-item>
           <el-form-item label="标题">
             <el-input v-model="form.title" />
           </el-form-item>
@@ -92,7 +95,7 @@ onMounted(loadDetail);
             </el-select>
           </el-form-item>
           <el-form-item label="跳转值">
-            <el-input v-model="form.action_value" placeholder="分类 ID 或商品 ID" />
+            <el-input v-model="form.action_value" placeholder="填写分类 ID 或商品 ID" />
           </el-form-item>
           <el-form-item label="排序">
             <el-input-number v-model="form.sort" :min="0" />

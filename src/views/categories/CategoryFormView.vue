@@ -3,11 +3,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
 
-import {
-  createCategory,
-  fetchCategories,
-  updateCategory,
-} from "@/api/modules/categories";
+import { createCategory, fetchCategories, updateCategory } from "@/api/modules/categories";
 import type { CategoryItem } from "@/types/admin";
 
 const route = useRoute();
@@ -54,7 +50,14 @@ async function handleSubmit() {
       await updateCategory(String(route.params.category_id), form);
       ElMessage.success("分类已更新");
     } else {
-      await createCategory(form);
+      await createCategory({
+        category_name: form.category_name,
+        category_desc: form.category_desc,
+        badge_text: form.badge_text,
+        delivery_mode: form.delivery_mode,
+        sort: form.sort,
+        status: form.status,
+      });
       ElMessage.success("分类已创建");
     }
     router.push("/categories");
@@ -71,20 +74,13 @@ onMounted(loadDetail);
     <div class="page-header">
       <div>
         <h2 class="page-title">{{ isEdit ? "编辑分类" : "新建分类" }}</h2>
-        <div class="page-subtitle">保持分类 ID 稳定，方便后续与 miniapp 配置保持映射。</div>
+        <div class="page-subtitle">分类主键由数据库自动生成，这里只维护展示信息和配送方式。</div>
       </div>
     </div>
 
     <div class="page-card form-card" v-loading="loading">
       <el-form label-position="top">
         <div class="form-grid">
-          <el-form-item label="分类 ID">
-            <el-input
-              v-model="form.category_id"
-              :disabled="isEdit"
-              placeholder="例如 cake"
-            />
-          </el-form-item>
           <el-form-item label="分类名称">
             <el-input v-model="form.category_name" />
           </el-form-item>

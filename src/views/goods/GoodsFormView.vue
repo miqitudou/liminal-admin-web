@@ -71,6 +71,37 @@ function syncFormFromTextareas() {
     .filter(Boolean);
 }
 
+function buildPayload() {
+  return {
+    category_id: form.category_id,
+    goods_name: form.goods_name,
+    goods_desc: form.goods_desc,
+    cover_text: form.cover_text,
+    cover_color: form.cover_color,
+    cover_image: form.cover_image,
+    price_cents: form.specs.length ? form.specs[0].price_cents : form.price_cents,
+    sales_count: form.sales_count,
+    status: form.status,
+    is_recommend: form.is_recommend,
+    sort: form.sort,
+    tags: form.tags,
+    detail_tips: form.detail_tips,
+    specs: form.specs.map((spec) => ({
+      spec_id: spec.spec_id,
+      spec_name: spec.spec_name,
+      price_cents: spec.price_cents,
+      stock: spec.stock,
+      min_advance_hours: spec.min_advance_hours,
+      sort: spec.sort,
+      status: spec.status,
+    })),
+    booking_rule: {
+      min_advance_hours: form.booking_rule.min_advance_hours,
+      pickup_slots: form.booking_rule.pickup_slots,
+    },
+  };
+}
+
 async function loadCategories() {
   const data = await fetchCategories({
     page: 1,
@@ -106,18 +137,20 @@ function addSpec() {
 
 function removeSpec(index: number) {
   form.specs.splice(index, 1);
+  form.specs.forEach((spec, specIndex) => {
+    spec.sort = specIndex + 1;
+  });
 }
 
 async function handleSubmit() {
   syncFormFromTextareas();
-  form.price_cents = form.specs.length ? form.specs[0].price_cents : form.price_cents;
   loading.value = true;
   try {
     if (isEdit.value) {
-      await updateGoods(String(route.params.goods_id), form);
+      await updateGoods(String(route.params.goods_id), buildPayload());
       ElMessage.success("商品已更新");
     } else {
-      await createGoods(form);
+      await createGoods(buildPayload());
       ElMessage.success("商品已创建");
     }
     router.push("/goods");
@@ -137,16 +170,13 @@ onMounted(async () => {
     <div class="page-header">
       <div>
         <h2 class="page-title">{{ isEdit ? "编辑商品" : "新建商品" }}</h2>
-        <div class="page-subtitle">后台字段会直接映射 miniapp 后续切换的正式商品数据。</div>
+        <div class="page-subtitle">商品、规格主键由数据库自动生成，这里只维护业务字段和库存配置。</div>
       </div>
     </div>
 
     <div class="page-card form-card" v-loading="loading">
       <el-form label-position="top">
         <div class="form-grid">
-          <el-form-item label="商品 ID">
-            <el-input v-model="form.goods_id" :disabled="isEdit" placeholder="例如 g1001" />
-          </el-form-item>
           <el-form-item label="商品名称">
             <el-input v-model="form.goods_name" />
           </el-form-item>
@@ -209,7 +239,7 @@ onMounted(async () => {
         <div class="spec-header">
           <div>
             <h3>商品规格</h3>
-            <p>价格以元录入，提交时自动转为分。</p>
+            <p>价格以元录入，提交时自动转为分；已有规格会原地更新，新规格自动分配主键。</p>
           </div>
           <el-button type="primary" plain @click="addSpec">
             <el-icon><Plus /></el-icon>
@@ -218,7 +248,7 @@ onMounted(async () => {
         </div>
 
         <div class="spec-list">
-          <div v-for="(spec, index) in form.specs" :key="index" class="spec-card">
+          <div v-for="(spec, index) in form.specs" :key="spec.spec_id || index" class="spec-card">
             <div class="spec-card-head">
               <div class="spec-title">规格 {{ index + 1 }}</div>
               <el-button link type="danger" @click="removeSpec(index)">
@@ -227,9 +257,6 @@ onMounted(async () => {
             </div>
 
             <div class="spec-grid">
-              <el-form-item label="规格 ID">
-                <el-input v-model="spec.spec_id" placeholder="可留空自动生成" />
-              </el-form-item>
               <el-form-item label="规格名称">
                 <el-input v-model="spec.spec_name" />
               </el-form-item>
@@ -244,6 +271,9 @@ onMounted(async () => {
               </el-form-item>
               <el-form-item label="最少提前小时数">
                 <el-input-number v-model="spec.min_advance_hours" :min="0" />
+              </el-form-item>
+              <el-form-item label="排序">
+                <el-input-number v-model="spec.sort" :min="0" />
               </el-form-item>
               <el-form-item label="状态">
                 <el-select v-model="spec.status">

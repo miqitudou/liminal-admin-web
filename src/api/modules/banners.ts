@@ -12,18 +12,18 @@ export function fetchBanners(params: BannerQuery) {
   return http.get<unknown, BannerListData>("/admin/banners", { params });
 }
 
-export function fetchBannerDetail(bannerId: string) {
+export function fetchBannerDetail(bannerId: string | number) {
   return http.get<unknown, BannerItem>(`/admin/banners/${bannerId}`);
 }
 
-export function createBanner(payload: BannerItem) {
+export function createBanner(payload: Partial<BannerItem>) {
   return http.post<unknown, BannerItem>("/admin/banners", payload);
 }
 
-export function updateBanner(bannerId: string, payload: BannerItem) {
+export function updateBanner(bannerId: string | number, payload: Partial<BannerItem>) {
   return http.put<unknown, BannerItem>(`/admin/banners/${bannerId}`, payload);
 }
 
-export function deleteBanner(bannerId: string) {
+export function deleteBanner(bannerId: string | number) {
   return http.delete<unknown, { deleted: boolean }>(`/admin/banners/${bannerId}`);
 }
