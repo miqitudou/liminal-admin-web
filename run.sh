@@ -8,6 +8,9 @@ NGINX_SERVICE="${NGINX_SERVICE:-nginx}"
 
 cd "$PROJECT_DIR"
 
+echo "开始拉取最新代码..."
+git pull
+
 echo "开始安装依赖..."
 npm install
 
