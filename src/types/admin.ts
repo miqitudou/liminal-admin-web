@@ -159,6 +159,21 @@ export interface UploadData {
   file_key: string;
 }
 
+export interface StoreConfigItem {
+  id?: string;
+  store_name: string;
+  short_name: string;
+  phone: string;
+  business_hours: string;
+  address: string;
+  pickup_notice: string;
+  xiaohongshu_qr_url: string;
+  wechat_qr_url: string;
+  douyin_qr_url: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface PointsProductItem {
   id?: string;
   title: string;

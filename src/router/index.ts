@@ -14,6 +14,7 @@ import OrderListView from "@/views/orders/OrderListView.vue";
 import PointsProductFormView from "@/views/points/PointsProductFormView.vue";
 import PointsProductListView from "@/views/points/PointsProductListView.vue";
 import PointsRedemptionListView from "@/views/points/PointsRedemptionListView.vue";
+import StoreSettingsView from "@/views/store/StoreSettingsView.vue";
 import { isAuthenticated } from "@/utils/auth";
 
 const routes: RouteRecordRaw[] = [
@@ -128,6 +129,14 @@ const routes: RouteRecordRaw[] = [
         component: BannerFormView,
         meta: {
           title: "编辑轮播图",
+        },
+      },
+      {
+        path: "store-settings",
+        name: "store-settings",
+        component: StoreSettingsView,
+        meta: {
+          title: "门店配置",
         },
       },
       {

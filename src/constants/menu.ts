@@ -27,6 +27,11 @@ export const adminMenuItems: MenuItem[] = [
     icon: "PictureFilled",
   },
   {
+    label: "门店配置",
+    path: "/store-settings",
+    icon: "OfficeBuilding",
+  },
+  {
     label: "积分商品",
     path: "/points-products",
     icon: "Present",
