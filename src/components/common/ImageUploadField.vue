@@ -40,10 +40,19 @@ async function handleUpload(options: UploadRequestOptions) {
 
 function beforeUpload(file: File) {
   const isImage = file.type.startsWith("image/");
+  const isSizeValid = file.size <= 10 * 1024 * 1024;
+
   if (!isImage) {
     ElMessage.warning("请上传图片文件");
+    return false;
   }
-  return isImage;
+
+  if (!isSizeValid) {
+    ElMessage.warning("图片大小请控制在 10MB 以内");
+    return false;
+  }
+
+  return true;
 }
 </script>
 

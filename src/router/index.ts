@@ -11,6 +11,9 @@ import GoodsFormView from "@/views/goods/GoodsFormView.vue";
 import GoodsListView from "@/views/goods/GoodsListView.vue";
 import OrderDetailView from "@/views/orders/OrderDetailView.vue";
 import OrderListView from "@/views/orders/OrderListView.vue";
+import PointsProductFormView from "@/views/points/PointsProductFormView.vue";
+import PointsProductListView from "@/views/points/PointsProductListView.vue";
+import PointsRedemptionListView from "@/views/points/PointsRedemptionListView.vue";
 import { isAuthenticated } from "@/utils/auth";
 
 const routes: RouteRecordRaw[] = [
@@ -125,6 +128,38 @@ const routes: RouteRecordRaw[] = [
         component: BannerFormView,
         meta: {
           title: "编辑轮播图",
+        },
+      },
+      {
+        path: "points-products",
+        name: "points-products",
+        component: PointsProductListView,
+        meta: {
+          title: "积分商品",
+        },
+      },
+      {
+        path: "points-products/create",
+        name: "points-products-create",
+        component: PointsProductFormView,
+        meta: {
+          title: "新建积分商品",
+        },
+      },
+      {
+        path: "points-products/:product_id/edit",
+        name: "points-products-edit",
+        component: PointsProductFormView,
+        meta: {
+          title: "编辑积分商品",
+        },
+      },
+      {
+        path: "points-redemptions",
+        name: "points-redemptions",
+        component: PointsRedemptionListView,
+        meta: {
+          title: "积分兑换记录",
         },
       },
     ],

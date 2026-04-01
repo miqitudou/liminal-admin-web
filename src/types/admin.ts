@@ -158,3 +158,41 @@ export interface UploadData {
   file_url: string;
   file_key: string;
 }
+
+export interface PointsProductItem {
+  id?: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image_url: string;
+  points_cost: number;
+  stock: number;
+  sort: number;
+  status: string;
+  redemption_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PointsProductListData {
+  list: PointsProductItem[];
+  pagination: PaginationMeta;
+}
+
+export interface PointsRedemptionItem {
+  id: string;
+  user_id: string;
+  nickname: string;
+  mobile: string;
+  product_id: string;
+  product_title: string;
+  points_cost: number;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PointsRedemptionListData {
+  list: PointsRedemptionItem[];
+  pagination: PaginationMeta;
+}

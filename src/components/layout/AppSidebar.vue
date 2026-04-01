@@ -7,6 +7,8 @@ import {
   Grid,
   List,
   PictureFilled,
+  Present,
+  Tickets,
 } from "@element-plus/icons-vue";
 
 import { adminMenuItems } from "@/constants/menu";
@@ -20,6 +22,8 @@ const iconMap = {
   Grid,
   List,
   PictureFilled,
+  Present,
+  Tickets,
 };
 
 const activePath = computed(() => route.path);

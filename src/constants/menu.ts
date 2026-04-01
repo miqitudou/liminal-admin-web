@@ -26,4 +26,14 @@ export const adminMenuItems: MenuItem[] = [
     path: "/banners",
     icon: "PictureFilled",
   },
+  {
+    label: "积分商品",
+    path: "/points-products",
+    icon: "Present",
+  },
+  {
+    label: "积分兑换记录",
+    path: "/points-redemptions",
+    icon: "Tickets",
+  },
 ];
