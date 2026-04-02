@@ -52,6 +52,8 @@ export interface GoodsListItem {
   goods_name: string;
   cover_image: string;
   price_cents: number;
+  price_min_cents: number;
+  price_max_cents: number;
   sales_count: number;
   status: string;
   is_recommend: boolean;
@@ -69,6 +71,8 @@ export interface GoodsItem {
   cover_color: string;
   cover_image: string;
   price_cents: number;
+  price_min_cents?: number;
+  price_max_cents?: number;
   sales_count: number;
   status: string;
   is_recommend: boolean;

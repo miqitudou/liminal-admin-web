@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Delete, Plus } from "@element-plus/icons-vue";
@@ -8,23 +8,35 @@ import ImageUploadField from "@/components/common/ImageUploadField.vue";
 import { fetchCategories } from "@/api/modules/categories";
 import { createGoods, fetchGoodsDetail, updateGoods } from "@/api/modules/goods";
 import type { CategoryItem, GoodsItem, GoodsSpecItem } from "@/types/admin";
-import { centsToYuan, yuanToCents } from "@/utils/price";
+import { yuanToCents } from "@/utils/price";
+
+type GoodsSpecFormItem = GoodsSpecItem & {
+  price_input: string;
+};
+
+type GoodsFormState = Omit<GoodsItem, "specs"> & {
+  specs: GoodsSpecFormItem[];
+};
 
 const route = useRoute();
 const router = useRouter();
 const isEdit = computed(() => Boolean(route.params.goods_id));
 const loading = ref(false);
 const categories = ref<CategoryItem[]>([]);
+const basePriceInput = ref("");
 
-const form = reactive<GoodsItem>({
+const form = reactive<GoodsFormState>({
   goods_id: "",
   category_id: "",
+  category_name: "",
   goods_name: "",
   goods_desc: "",
   cover_text: "",
   cover_color: "#f3e1cf",
   cover_image: "",
   price_cents: 0,
+  price_min_cents: 0,
+  price_max_cents: 0,
   sales_count: 0,
   status: "on",
   is_recommend: false,
@@ -42,14 +54,57 @@ const tagsText = ref("");
 const detailTipsText = ref("");
 const pickupSlotsText = ref("");
 
-function createEmptySpec(): GoodsSpecItem {
+function formatPriceInputValue(cents: number): string {
+  const value = Number(cents || 0) / 100;
+  return value.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+}
+
+function parsePriceInputValue(value: string | number): number | null {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    return null;
+  }
+
+  if (!/^\d+(\.\d{0,2})?$/.test(text)) {
+    return null;
+  }
+
+  return yuanToCents(text);
+}
+
+function ensurePositivePrice(value: string | number, label: string): number {
+  const cents = parsePriceInputValue(value);
+
+  if (cents === null) {
+    throw new Error(`${label}必须是数字，且最多保留两位小数`);
+  }
+
+  if (cents <= 0) {
+    throw new Error(`${label}必须大于 0`);
+  }
+
+  return cents;
+}
+
+function createEmptySpec(): GoodsSpecFormItem {
+  const defaultPriceText = basePriceInput.value.trim();
+
   return {
     spec_name: "",
-    price_cents: 0,
+    price_cents: parsePriceInputValue(defaultPriceText) || 0,
+    price_input: defaultPriceText,
     stock: 0,
     min_advance_hours: 0,
     sort: form.specs.length + 1,
     status: "enabled",
+  };
+}
+
+function normalizeSpec(spec: GoodsSpecItem): GoodsSpecFormItem {
+  return {
+    ...spec,
+    price_input: formatPriceInputValue(spec.price_cents),
   };
 }
 
@@ -71,7 +126,36 @@ function syncFormFromTextareas() {
     .filter(Boolean);
 }
 
+function applyGoodsDetail(data: GoodsItem) {
+  form.goods_id = data.goods_id || "";
+  form.category_id = data.category_id;
+  form.category_name = data.category_name || "";
+  form.goods_name = data.goods_name;
+  form.goods_desc = data.goods_desc;
+  form.cover_text = data.cover_text;
+  form.cover_color = data.cover_color;
+  form.cover_image = data.cover_image;
+  form.price_cents = data.price_cents;
+  form.price_min_cents = data.price_min_cents || data.price_cents;
+  form.price_max_cents = data.price_max_cents || data.price_cents;
+  form.sales_count = data.sales_count;
+  form.status = data.status;
+  form.is_recommend = data.is_recommend;
+  form.sort = data.sort;
+  form.tags = [...data.tags];
+  form.detail_tips = [...data.detail_tips];
+  form.booking_rule = {
+    min_advance_hours: data.booking_rule.min_advance_hours,
+    pickup_slots: [...data.booking_rule.pickup_slots],
+  };
+  form.specs = (data.specs || []).map(normalizeSpec);
+  basePriceInput.value = formatPriceInputValue(data.price_cents);
+  syncTextareasFromForm();
+}
+
 function buildPayload() {
+  const basePriceCents = ensurePositivePrice(basePriceInput.value, "默认价格");
+
   return {
     category_id: form.category_id,
     goods_name: form.goods_name,
@@ -79,22 +163,26 @@ function buildPayload() {
     cover_text: form.cover_text,
     cover_color: form.cover_color,
     cover_image: form.cover_image,
-    price_cents: form.specs.length ? form.specs[0].price_cents : form.price_cents,
+    price_cents: basePriceCents,
     sales_count: form.sales_count,
     status: form.status,
     is_recommend: form.is_recommend,
     sort: form.sort,
     tags: form.tags,
     detail_tips: form.detail_tips,
-    specs: form.specs.map((spec) => ({
-      spec_id: spec.spec_id,
-      spec_name: spec.spec_name,
-      price_cents: spec.price_cents,
-      stock: spec.stock,
-      min_advance_hours: spec.min_advance_hours,
-      sort: spec.sort,
-      status: spec.status,
-    })),
+    specs: form.specs.map((spec, index) => {
+      const priceCents = ensurePositivePrice(spec.price_input, `规格 ${index + 1} 的价格`);
+
+      return {
+        spec_id: spec.spec_id,
+        spec_name: spec.spec_name,
+        price_cents: priceCents,
+        stock: spec.stock,
+        min_advance_hours: spec.min_advance_hours,
+        sort: spec.sort,
+        status: spec.status,
+      };
+    }),
     booking_rule: {
       min_advance_hours: form.booking_rule.min_advance_hours,
       pickup_slots: form.booking_rule.pickup_slots,
@@ -115,17 +203,18 @@ async function loadCategories() {
 
 async function loadDetail() {
   if (!isEdit.value) {
+    basePriceInput.value = formatPriceInputValue(form.price_cents);
     if (!form.specs.length) {
       form.specs.push(createEmptySpec());
     }
+    syncTextareasFromForm();
     return;
   }
 
   loading.value = true;
   try {
     const data = await fetchGoodsDetail(String(route.params.goods_id));
-    Object.assign(form, data);
-    syncTextareasFromForm();
+    applyGoodsDetail(data);
   } finally {
     loading.value = false;
   }
@@ -144,13 +233,22 @@ function removeSpec(index: number) {
 
 async function handleSubmit() {
   syncFormFromTextareas();
+
+  let payload;
+  try {
+    payload = buildPayload();
+  } catch (error) {
+    ElMessage.warning(error instanceof Error ? error.message : "请检查价格配置");
+    return;
+  }
+
   loading.value = true;
   try {
     if (isEdit.value) {
-      await updateGoods(String(route.params.goods_id), buildPayload());
+      await updateGoods(String(route.params.goods_id), payload);
       ElMessage.success("商品已更新");
     } else {
-      await createGoods(buildPayload());
+      await createGoods(payload);
       ElMessage.success("商品已创建");
     }
     router.push("/goods");
@@ -170,7 +268,9 @@ onMounted(async () => {
     <div class="page-header">
       <div>
         <h2 class="page-title">{{ isEdit ? "编辑商品" : "新建商品" }}</h2>
-        <div class="page-subtitle">商品、规格主键由数据库自动生成，这里只维护业务字段和库存配置。</div>
+        <div class="page-subtitle">
+          这里维护商品基础信息、默认价格、规格价格、库存与预约规则。
+        </div>
       </div>
     </div>
 
@@ -195,6 +295,13 @@ onMounted(async () => {
           </el-form-item>
           <el-form-item label="封面底色">
             <el-input v-model="form.cover_color" />
+          </el-form-item>
+          <el-form-item label="默认价格（元/份）">
+            <el-input
+              v-model="basePriceInput"
+              inputmode="decimal"
+              placeholder="例如 100.2"
+            />
           </el-form-item>
           <el-form-item label="销量">
             <el-input-number v-model="form.sales_count" :min="0" />
@@ -239,7 +346,7 @@ onMounted(async () => {
         <div class="spec-header">
           <div>
             <h3>商品规格</h3>
-            <p>价格以元录入，提交时自动转为分；已有规格会原地更新，新规格自动分配主键。</p>
+            <p>默认价格独立保存；每个规格也可以单独填写价格，支持输入 `100.2` 这类小数。</p>
           </div>
           <el-button type="primary" plain @click="addSpec">
             <el-icon><Plus /></el-icon>
@@ -260,10 +367,11 @@ onMounted(async () => {
               <el-form-item label="规格名称">
                 <el-input v-model="spec.spec_name" />
               </el-form-item>
-              <el-form-item label="价格（元）">
+              <el-form-item label="规格价格（元）">
                 <el-input
-                  :model-value="centsToYuan(spec.price_cents)"
-                  @update:model-value="spec.price_cents = yuanToCents($event)"
+                  v-model="spec.price_input"
+                  inputmode="decimal"
+                  placeholder="例如 100.2"
                 />
               </el-form-item>
               <el-form-item label="库存">

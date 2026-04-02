@@ -22,6 +22,14 @@ const filters = reactive({
   status: "",
 });
 
+function getPriceText(row: GoodsListItem) {
+  if (row.spec_count > 1 && row.price_min_cents !== row.price_max_cents) {
+    return `¥${centsToYuan(row.price_min_cents)}-¥${centsToYuan(row.price_max_cents)}`;
+  }
+
+  return `¥${centsToYuan(row.price_min_cents || row.price_cents)}`;
+}
+
 async function loadCategories() {
   const data = await fetchCategories({
     page: 1,
@@ -56,7 +64,7 @@ onMounted(async () => {
     <div class="page-header">
       <div>
         <h2 class="page-title">商品管理</h2>
-        <div class="page-subtitle">维护商品基础信息、规格、库存、预约规则和上下架状态。</div>
+        <div class="page-subtitle">维护商品基础信息、规格、库存和上下架状态。</div>
       </div>
       <el-button type="primary" @click="router.push('/goods/create')">新建商品</el-button>
     </div>
@@ -91,8 +99,8 @@ onMounted(async () => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="价格" width="120">
-          <template #default="{ row }">¥{{ centsToYuan(row.price_cents) }}</template>
+        <el-table-column label="价格" width="180">
+          <template #default="{ row }">{{ getPriceText(row) }}</template>
         </el-table-column>
         <el-table-column prop="sales_count" label="销量" width="100" />
         <el-table-column prop="spec_count" label="规格数" width="100" />
