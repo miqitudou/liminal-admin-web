@@ -50,6 +50,7 @@ export interface GoodsListItem {
   category_id: string;
   category_name: string;
   goods_name: string;
+  feature_text: string;
   cover_image: string;
   price_cents: number;
   price_min_cents: number;
@@ -67,6 +68,7 @@ export interface GoodsItem {
   category_name?: string;
   goods_name: string;
   goods_desc: string;
+  feature_text: string;
   cover_text: string;
   cover_color: string;
   cover_image: string;

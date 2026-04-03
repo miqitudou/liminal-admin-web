@@ -31,6 +31,7 @@ const form = reactive<GoodsFormState>({
   category_name: "",
   goods_name: "",
   goods_desc: "",
+  feature_text: "",
   cover_text: "",
   cover_color: "#f3e1cf",
   cover_image: "",
@@ -132,6 +133,7 @@ function applyGoodsDetail(data: GoodsItem) {
   form.category_name = data.category_name || "";
   form.goods_name = data.goods_name;
   form.goods_desc = data.goods_desc;
+  form.feature_text = data.feature_text || "";
   form.cover_text = data.cover_text;
   form.cover_color = data.cover_color;
   form.cover_image = data.cover_image;
@@ -160,6 +162,7 @@ function buildPayload() {
     category_id: form.category_id,
     goods_name: form.goods_name,
     goods_desc: form.goods_desc,
+    feature_text: form.feature_text,
     cover_text: form.cover_text,
     cover_color: form.cover_color,
     cover_image: form.cover_image,
@@ -292,6 +295,9 @@ onMounted(async () => {
           </el-form-item>
           <el-form-item label="封面文案">
             <el-input v-model="form.cover_text" />
+          </el-form-item>
+          <el-form-item label="特色标签">
+            <el-input v-model="form.feature_text" placeholder="例如：本店回头客第 1 名" />
           </el-form-item>
           <el-form-item label="封面底色">
             <el-input v-model="form.cover_color" />
